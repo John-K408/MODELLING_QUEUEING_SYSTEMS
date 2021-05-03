@@ -1,25 +1,12 @@
 public class Job {
+    public long arrTime;
+    public int size;
+    public long depTime;
 
-    private int jobSize;
-    private int arrivalTime;
-    private boolean isExpress;
-
-    public Job( int jobSize,int arrivalTime,boolean isExpress){
-        this.jobSize = jobSize;
-        this.arrivalTime = arrivalTime;
-        this.isExpress = isExpress;
+    public Job(long arrTime, int size, long depTime)
+    {
+        this.arrTime = arrTime;
+        this.depTime = depTime;
+        this.size = size;
     }
-
-    public int getJobSize(){
-        return this.jobSize;
-    }
-
-    public int getArrivalTime() {
-        return arrivalTime;
-    }
-
-    public boolean isExpress(){
-        return isExpress;
-    }
-
 }

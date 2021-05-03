@@ -1,31 +1,38 @@
-import java.util.LinkedList;
-import java.util.PriorityQueue;
-import java.util.Queue;
-
 public class Server {
 
-     int currentSystemTime;
-     int nextDepartureTime;
-     Job jobInService;
-     int numJobsProcessed;
-     Queue<Job> queue;
-     int nextArrivalTime;
+    long nextDepartureTime;
+    long nextArrivalTime;
+    Queue queue;
+    Job jobInService;
 
+    public Server(long nextDepartureTime, long nextArrivalTime, Job jobInService)
+    {
+        this.nextArrivalTime = nextArrivalTime;
+        this.nextDepartureTime = nextDepartureTime;
+        queue = new Queue();
+        this.jobInService = jobInService;
+    }
+    long emptyTime(long currentTime) // Returns the time the server will become empty if no new Jobs Arrive
+    {
+        if(queue.isEmpty())
+        {
+            if(jobInService == null)
+                return currentTime; // server is already empty
 
-    public Server(){
+            else
+                return nextDepartureTime; // Server has only a single job(that is currently being processed)
+        }
 
-        numJobsProcessed = 0;
-        queue = new LinkedList<>();
-        nextDepartureTime = Integer.MAX_VALUE;
-        currentSystemTime  = 0;
-        jobInService = null;
-        nextArrivalTime = Integer.MAX_VALUE;
-
+        return queue.peekTail().depTime;
     }
 
+    int numJobs() // Returns number of jobs in a server
+    {
+        if(jobInService == null)
+        {
+            return 0;
+        }
 
-
-
-
-
+        return queue.numJobs() + 1;
+    }
 }
