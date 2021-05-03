@@ -1,4 +1,4 @@
-public class SingleServerFCFSQS {
+public class GeneralServerFCFS {
 
     public static void main(String args[]){
         Server server = new Server();
@@ -61,7 +61,7 @@ public class SingleServerFCFSQS {
 
                     //generate job
                     int jobSize = jobSizeRV.getRandomValue();
-                    Job job = new Job(jobSize,server.currentSystemTime);
+                    Job job = new Job(jobSize,server.currentSystemTime,false);
 
 
                     //if there are no jobs in server, add job to server;

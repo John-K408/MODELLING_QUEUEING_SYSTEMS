@@ -2,11 +2,12 @@ public class Job {
 
     private int jobSize;
     private int arrivalTime;
+    private boolean isExpress;
 
-    public Job( int jobSize,int arrivalTime){
+    public Job( int jobSize,int arrivalTime,boolean isExpress){
         this.jobSize = jobSize;
         this.arrivalTime = arrivalTime;
-
+        this.isExpress = isExpress;
     }
 
     public int getJobSize(){
@@ -15,6 +16,10 @@ public class Job {
 
     public int getArrivalTime() {
         return arrivalTime;
+    }
+
+    public boolean isExpress(){
+        return isExpress;
     }
 
 }
