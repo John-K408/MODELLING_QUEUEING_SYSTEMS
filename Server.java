@@ -4,14 +4,17 @@ public class Server {
     long nextArrivalTime;
     Queue queue;
     Job jobInService;
+    boolean isExpress;
 
-    public Server(long nextDepartureTime, long nextArrivalTime, Job jobInService)
+    public Server(long nextDepartureTime, long nextArrivalTime, Job jobInService,boolean isExpress)
     {
         this.nextArrivalTime = nextArrivalTime;
         this.nextDepartureTime = nextDepartureTime;
         queue = new Queue();
         this.jobInService = jobInService;
+        this.isExpress = isExpress;
     }
+
     long emptyTime(long currentTime) // Returns the time the server will become empty if no new Jobs Arrive
     {
         if(queue.isEmpty())
@@ -34,5 +37,9 @@ public class Server {
         }
 
         return queue.numJobs() + 1;
+    }
+
+    void simulateServer(){
+
     }
 }
