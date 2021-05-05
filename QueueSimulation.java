@@ -21,11 +21,11 @@ public class QueueSimulation {
         //int tempJobSize = GeometricGenerator.generateVar(q); //Size for first Job
 
         //Set expressJobSize to 5;
-        int expressJobSize = 5;
+        int expressJobSize = (int)(0.5/q + 1);
 
         //1/p is the expected value for the interrarrival time of general jobs.
         //We expect it to take a little longer for express jobs to come in
-        int expressJobInterArrival =(int) (1/p + 2);
+        int expressJobInterArrival =(int) (1.5/p);
 
         //Job firstExpressJob = new Job(0, expressJobSize, expressJobSize); // Arrival time for first job will be zero, Departure Time will be equal to Size of Job
         Server expressServer = new Server(expressJobSize,expressJobInterArrival,null,true);
@@ -41,7 +41,7 @@ public class QueueSimulation {
         //sum of job Sizes for general job
         int sumJobSizeGeneral  = 0;
 
-        //Number of general jobs worked on so far
+        //Number of general jobs worked on so far beyond the initial k;
         int numGeneralJobs = 0;
 
         //Sum of response times for general jobs
@@ -153,7 +153,7 @@ public class QueueSimulation {
                 {
                     //get the number of general jobs that arrive in summer over entire iteration
                     if(!server.isExpress)numGeneralJobs++;
-                    sumN += server.numJobs(); //Add current jobs in server
+                    //sumN += server.numJobs(); //Add current jobs in server
                 }
                 numJobsArr++;
 
@@ -189,8 +189,15 @@ public class QueueSimulation {
                 {
                     //Adding response time for each server
                     long responseTime = server.jobInService.depTime - server.jobInService.arrTime;
-                    if(server.isExpress)sumRTExpressJobs += responseTime;
-                    else sumRTGeneralJobs += responseTime;
+
+                    if(server.isExpress){
+                        System.out.println("Express Job response time: " + responseTime);
+                        sumRTExpressJobs += responseTime;
+                    }
+
+                    else{
+                        System.out.println("General job response time: " + responseTime);
+                    } sumRTGeneralJobs += responseTime;
                     //sumT += server.jobInService.depTime - server.jobInService.arrTime; // Adding Service Time
                     numJobsDep++;
                 }
@@ -253,7 +260,7 @@ public class QueueSimulation {
             p = scan.nextDouble();
             if(p <= 1 && p > 0)
             {
-                simulateQueue(200, p,0.1, 50);
+                simulateQueue(10000, p,0.1, 2000);
             }
 
         } while (p <= 1 && p > 0);
