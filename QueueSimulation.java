@@ -14,9 +14,9 @@ public class QueueSimulation {
      k is the number of first arrivals that we should not check in our simulation.
      */
     {
-        BufferedWriter bwExpress = new BufferedWriter(new FileWriter("ExpressResponseTimes.txt"));
+        BufferedWriter bwExpress = new BufferedWriter(new FileWriter("ExpressResponseTimes.txt",false));
 
-        BufferedWriter bwGeneral = new BufferedWriter(new FileWriter("GeneralResponseTime.txt"));
+        BufferedWriter bwGeneral = new BufferedWriter(new FileWriter("GeneralResponseTime.txt",false));
 
 
         long currentTime;
@@ -162,19 +162,18 @@ public class QueueSimulation {
                     //should calculate a job's response time once it arrives so all jobs above boundary's response time
                     //can be calculated
                     long responseTime = tempJob.depTime - tempJob.arrTime;
-
+                    System.out.println(((server.isExpress)? "Express Job":"General Job")+" response time: " + responseTime);
                     if(server.isExpress){
-                        System.out.println("Express Job response time: " + responseTime);
                         sumRTExpressJobs += responseTime;
                         bwExpress.write(responseTime + "\n");
                     }
                     else{
                         //get the number of general jobs that arrive in summer over entire iteration
                         numGeneralJobs++;
-                        System.out.println("General job response time: " + responseTime);
                         sumRTGeneralJobs += responseTime;
                         bwGeneral.write(responseTime + "\n");
                     }
+
                     //sumN += server.numJobs(); //Add current jobs in server
                 }
                 numJobsArr++;
