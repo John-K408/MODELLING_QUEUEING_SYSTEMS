@@ -1,15 +1,22 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.Buffer;
 import java.util.Scanner;
 
 public class QueueSimulation {
 
 
-    static void simulateQueue(int n, double p , double q, int k)
+    static void simulateQueue(int n, double p , double q, int k) throws IOException
     /* Where n is the total Number of Jobs that should arrive in the simulation.
      p is the probability for inter-arrival time Geometric Distribution for general jobs
      q is the probability for Job Size Geometric Distribution for general jobs
      k is the number of first arrivals that we should not check in our simulation.
      */
     {
+        BufferedWriter bwExpress = new BufferedWriter(new FileWriter("ExpressResponseTimes.txt"));
+
+        BufferedWriter bwGeneral = new BufferedWriter(new FileWriter("GeneralResponseTime.txt"));
 
 
         long currentTime;
@@ -151,8 +158,23 @@ public class QueueSimulation {
 
                 if(numJobsArr > k)  // The first k boundary exceptions have already arrived
                 {
-                    //get the number of general jobs that arrive in summer over entire iteration
-                    if(!server.isExpress)numGeneralJobs++;
+                    //Since not every job actually finishes (program ends when all the jobs we want have arrived), we
+                    //should calculate a job's response time once it arrives so all jobs above boundary's response time
+                    //can be calculated
+                    long responseTime = tempJob.depTime - tempJob.arrTime;
+
+                    if(server.isExpress){
+                        System.out.println("Express Job response time: " + responseTime);
+                        sumRTExpressJobs += responseTime;
+                        bwExpress.write(responseTime + "\n");
+                    }
+                    else{
+                        //get the number of general jobs that arrive in summer over entire iteration
+                        numGeneralJobs++;
+                        System.out.println("General job response time: " + responseTime);
+                        sumRTGeneralJobs += responseTime;
+                        bwGeneral.write(responseTime + "\n");
+                    }
                     //sumN += server.numJobs(); //Add current jobs in server
                 }
                 numJobsArr++;
@@ -187,17 +209,6 @@ public class QueueSimulation {
 
                 if(numJobsArr > k) // The first k boundary exceptions have already arrived
                 {
-                    //Adding response time for each server
-                    long responseTime = server.jobInService.depTime - server.jobInService.arrTime;
-
-                    if(server.isExpress){
-                        System.out.println("Express Job response time: " + responseTime);
-                        sumRTExpressJobs += responseTime;
-                    }
-
-                    else{
-                        System.out.println("General job response time: " + responseTime);
-                    } sumRTGeneralJobs += responseTime;
                     //sumT += server.jobInService.depTime - server.jobInService.arrTime; // Adding Service Time
                     numJobsDep++;
                 }
@@ -248,8 +259,7 @@ public class QueueSimulation {
 //        System.out.println("Expected N from formulae is " + formulaeN);
 
     }
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) throws IOException {
         Scanner scan = new Scanner(System.in);
         double p;
 
