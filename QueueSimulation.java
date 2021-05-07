@@ -59,8 +59,8 @@ public class QueueSimulation {
         long sumRTExpressJobs = 0;
 
         //
-        Server generalServer = new Server(generalJobSize,GeometricGenerator.generateVar(p),null,false);
-
+        Server generalServer1 = new Server(generalJobSize,GeometricGenerator.generateVar(p),null,false);
+        Server generalServer2 = new Server(generalJobSize,GeometricGenerator.generateVar(p),null,false);
         //The server we are currently performing departure or arrival on - could be express or
         Server server ;
 
@@ -95,8 +95,8 @@ public class QueueSimulation {
             if(isArrGen){
                 if(isArrExp){
                     isArrivalOperation = true;
-                    if(generalServer.nextArrivalTime < expressServer.nextArrivalTime){
-                        server = generalServer;
+                    if(generalServer1.nextArrivalTime < expressServer.nextArrivalTime){
+                        server = generalServer1;
                     }
                     else{
                         server = expressServer;
@@ -104,9 +104,9 @@ public class QueueSimulation {
 
                 }
                 else{
-                    if(generalServer.nextArrivalTime < expressServer.jobInService.depTime){
+                    if(generalServer1.nextArrivalTime < expressServer.jobInService.depTime){
                         isArrivalOperation = true;
-                        server = generalServer;
+                        server = generalServer1;
                     }
                     else{
                         isArrivalOperation = false;
@@ -119,9 +119,9 @@ public class QueueSimulation {
             else{
 
                 if(isArrExp){
-                    if(generalServer.jobInService.depTime < generalServer.nextArrivalTime){
+                    if(generalServer1.jobInService.depTime < generalServer1.nextArrivalTime){
                         isArrivalOperation = false;
-                        server = generalServer;
+                        server = generalServer1;
                     }
                     else{
                         isArrivalOperation = true;
@@ -130,8 +130,8 @@ public class QueueSimulation {
                 }
                 else{
                     isArrivalOperation = false;
-                    if(generalServer.jobInService.depTime < expressServer.jobInService.depTime){
-                        server = generalServer;
+                    if(generalServer1.jobInService.depTime < expressServer.jobInService.depTime){
+                        server = generalServer1;
                     }
                     else{
                         server  = expressServer;
@@ -173,6 +173,7 @@ public class QueueSimulation {
                         sumRTGeneralJobs += responseTime;
                         bwGeneral.write(responseTime + "\n");
                     }
+                   // if(numGeneralJobs %2 == 1) server = generalServer2;
 
                     //sumN += server.numJobs(); //Add current jobs in server
                 }
