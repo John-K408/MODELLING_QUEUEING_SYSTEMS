@@ -1,14 +1,12 @@
 public class Server {
 
     long nextDepartureTime;
-    long nextArrivalTime;
     Queue queue;
     Job jobInService;
     boolean isExpress;
 
-    public Server(long nextDepartureTime, long nextArrivalTime, Job jobInService,boolean isExpress)
+    public Server(long nextDepartureTime, Job jobInService, boolean isExpress)
     {
-        this.nextArrivalTime = nextArrivalTime;
         this.nextDepartureTime = nextDepartureTime;
         queue = new Queue();
         this.jobInService = jobInService;
