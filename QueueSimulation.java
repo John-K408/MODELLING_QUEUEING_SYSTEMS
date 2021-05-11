@@ -7,10 +7,13 @@ import java.util.Scanner;
 public class QueueSimulation {
 
 
-    static void simulateQueue(int n, double p , double q, int k) throws IOException
+    static void simulateQueue(int n, double p1 , double p2,double q1, int k) throws IOException
     /* Where n is the total Number of Jobs that should arrive in the simulation.
-     p is the probability for inter-arrival time Geometric Distribution for general jobs
-     q is the probability for Job Size Geometric Distribution for general jobs
+     p1 is the probability for inter-arrival time Geometric Distribution for general jobs
+     p2 is the probability for inter-arrival time for Geometric distribution for e
+     xpress jobs
+     q1 is the probability for Job Size Geometric
+      Distribution for general jobs
      k is the number of first arrivals that we should not check in our simulation.
      */
     {
@@ -23,33 +26,34 @@ public class QueueSimulation {
 
         int tempJobSize;
 
+        int expressJobSize = (int)(0.5/q1 + 1);
 
-        //int tempJobSize = GeometricGenerator.generateVar(q); //Size for first Job
-
-        //Set expressJobSize to 5;
-        int expressJobSize = (int)(0.5/q + 1);
-
-        //1/p is the expected value for the interrarrival time of general jobs.
+        //1/p1 is the expected value for the interrarrival time of general jobs.
         //We expect it to take a little longer for express jobs to come in
-        int expressJobInterArrival =(int) (3.0/p);
 
+        int expressJobInterArrival = GeometricGenerator.generateVar(p2);
+
+        //99th percentile for interrArrival times;
+        int worstExpressJobInterArrival = (int)Math.ceil(Math.log(0.01)/Math.log(1 - p2));
+
+        int boundarySizeExpress = (expressJobSize < worstExpressJobInterArrival)?3*worstExpressJobInterArrival:expressJobSize * 3;
+        //Index 0: Express server
+        //Index 1: General server
+        //Index 2: General server
         Server[] servers = new Server[3];
+
+        // index row 0: Departures
+        //Index row 1: Arrivals
         long[][] times = new long[2][3];
 
-
-        //Job firstExpressJob = new Job(0, expressJobSize, expressJobSize); // Arrival time for first job will be zero, Departure Time will be equal to Size of Job
         servers[0] = new Server(Long.MAX_VALUE,null,true);
-        //Boundary for express Job -- 30 (this is hypothetical);
 
-        //Let q be the probability for the distribution of job size for general jobs.
-        //Let p be the probability for the distribution of interarrival time for general jobs.
-        int generalJobSize = GeometricGenerator.generateVar(q);
+        //Let q1 be the probability for the distribution of job size for general jobs.
+        //Let p1 be the probability for the distribution of interarrival time for general jobs.
+
 
         //Do these because we want to know the average size of general jobs so we can set fixed size of express jobs to something
         //similar or lower
-
-        //sum of job Sizes for general job
-        int sumJobSizeGeneral  = 0;
 
         //Number of general jobs worked on so far beyond the initial k;
         int numGeneralJobs = 0;
@@ -58,10 +62,7 @@ public class QueueSimulation {
         long sumRTGeneralJobs = 0;
 
         //Sum of response times for express jobs
-
         long sumRTExpressJobs = 0;
-
-        //
 
         for(int i = 1; i < 3; i++)
         {
@@ -69,42 +70,32 @@ public class QueueSimulation {
         }
 
         //The server we are currently performing departure or arrival on - could be express or
-        Server server ;
-
-
-        //Use booleans to keep track of which activity is happening next for each server
-        //isArrGen: The next event in the general server is arrival
-        boolean isArrGen = true;
-
-        //isArrExp: The next event in the express server is arrival;
-        boolean isArrExp = true;
-
-        //decide on which operation to perform on server
-        //server will be set to whichever server among server1 or server2 we are working on.
-        boolean isArrivalOperation = false;
+        Server server;
 
 
 
         int numJobsArr = 0; // No Jobs have already arrived.
-        int numJobsDep = 0; // No Jobs have departed yet.
-        //sumN is the total number of jobs in system at any moment in time
-        long sumN = 0;
-
-        //sumT is the total response time for all jobs above k till now.
-        long sumT = 0;
 
         for(int i = 0; i < 2; i++)
             for(int j = 0; j < 3; j++)
                 times[i][j] = Long.MAX_VALUE;
 
         times[1][0] = expressJobInterArrival;
-        times[1][1] = GeometricGenerator.generateVar(p);
+        times[1][1] = GeometricGenerator.generateVar(p1);
         //times [1][2] is unused.
         //times [0] stores all departure times. time[1][0] store express job arrival time. time[1][1] stores regular job arrival time.
-        int boundarySizeExpress = expressJobSize * 2;
+
+
+        //check if express lane has been checked
         boolean expressLaneChecked = false;
+
+        //keep track of number of jobs moved from general to express lane
         int numJobsMoved = 0;
+
+        //keep track of the number of jobs that could not be moved because they crossed size boundary
         int numExpressJobsNotInBoundary = 0;
+
+        //while there are more jobs to be checked...
         while(numJobsArr < n)
         {
 
@@ -114,21 +105,21 @@ public class QueueSimulation {
             {
                 times[0][i] = servers[i].nextDepartureTime;
             }
+
+            //indices will contain the indices of the minimum value in the 2 x 3 array -> The server and whether it is arrival or departure.
+            //Index 0: indicates whether it is an arrival or departure (If 0 -> Departure; If 1 -> Arrival).
+            //Index 1: Indicates which server the arrival/departure was for.
             int[]  indices  = minValue2DArray(times);
 
 
             if(indices[0] == 0) // Means Departure Operation
             {
+                //set server to whichever server it's for.
                 server = servers[indices[1]];
                 currentTime = server.nextDepartureTime;
 
                 System.out.println("Departure of " + ((server.jobInService.isExpress)? "express job":"general job") +" at " + currentTime);
 
-                if(numJobsArr > k) // The first k boundary exceptions have already arrived
-                {
-                    //sumT += server.jobInService.depTime - server.jobInService.arrTime; // Adding Service Time
-                    numJobsDep++;
-                }
 
                 server.jobInService = null; // Take out the current Job from Service
                 System.out.println("Job departed");
@@ -138,7 +129,7 @@ public class QueueSimulation {
                     System.out.println("New job moved into service");
                     server.jobInService = server.queue.pop(); //Bring in the next Job from queue
                     server.nextDepartureTime = server.jobInService.depTime; //Setting the nextDepartureTime as the JobInService's Departure Time.
-                    System.out.println("Next Departure time of" + ((indices[1] == 0)? "express server":"general server " + indices[1]) +" is " + server.nextDepartureTime);
+                    System.out.println("Next Departure time of " + ((indices[1] == 0)? "express server":"general server " + indices[1]) +" is " + server.nextDepartureTime);
                 }
                 else // No Jobs to be Processed
                 {
@@ -152,33 +143,43 @@ public class QueueSimulation {
             {
                 currentTime = times[indices[0]][indices[1]];
                 System.out.println("Arrival of " + ((indices[1] == 0)? "express job":"general job") +" at " + currentTime);
+                //if express job
                 if(indices[1] == 0)
                 {
                     tempJobSize = expressJobSize;
                     server = servers[0];
                     expressLaneChecked = false;
                 }
+                //if general job
                 else
                 {
-                    tempJobSize = GeometricGenerator.generateVar(q);
+                    tempJobSize = GeometricGenerator.generateVar(q1);
+                    server = servers[indices[1]];
                     long[] emptyTimeArray = {servers[0].emptyTime(currentTime), servers[1].emptyTime(currentTime), servers[2].emptyTime(currentTime)};
+                    //get server with least emptyTime
                     int serverIndex = minValue1DArray(emptyTimeArray);
+                    //if any of general servers have least empty time
                     if (serverIndex != 0) {
                         server = servers[serverIndex];
                     }
-
+                    //if express server has least empty time
                     else
                     {
-                        if ((servers[0].emptyTime(currentTime) + tempJobSize + expressJobSize) - (times[1][1])< boundarySizeExpress) //Calculate if next Express Job is done within boundary time. DepartureTime - ArrivalTime < boundarySizeExpress
+
+                        //if all current jobs, general job that is about to be moved,  and next express job will be finished within
+                        //boundary time, move general job to express server
+                        if ((servers[0].emptyTime(currentTime) + tempJobSize + expressJobSize) - (worstExpressJobInterArrival)< boundarySizeExpress) //Calculate if next Express Job is done within boundary time. DepartureTime - ArrivalTime < boundarySizeExpress
                         {
                             server = servers[0];
                             numJobsMoved++;
                         }
 
+                        //if they won't finish within time,
                         else
                         {
                             boolean tempBool = !expressLaneChecked;
                             expressLaneChecked = true;
+                            //move job wrongly with probability 5%
                             if (tempBool && Math.random() < 0.05)
                             {
                                 server = servers[0];
@@ -207,6 +208,7 @@ public class QueueSimulation {
                         //should calculate a job's response time once it arrives so all jobs above boundary's response time
                         //can be calculated
                         long responseTime = tempJob.depTime - tempJob.arrTime;
+                        //if express job and response time exceeds boundary
                         if(indices[1] == 0 && responseTime > boundarySizeExpress)
                         {
                             numExpressJobsNotInBoundary++;
@@ -223,7 +225,7 @@ public class QueueSimulation {
                             bwGeneral.write(responseTime + "\n");
                         }
 
-                        //sumN += server.numJobs(); //Add current jobs in server
+
                     }
 
                 numJobsArr++;
@@ -242,8 +244,8 @@ public class QueueSimulation {
                         server.queue.add(tempJob);
                     }
 
-                if(indices[1] == 0)times[1][0] += expressJobInterArrival;
-                else times[1][1] += GeometricGenerator.generateVar(p);
+                if(indices[1] == 0)times[1][0] += GeometricGenerator.generateVar(p2);
+                else times[1][1] += GeometricGenerator.generateVar(p1);
 
                 System.out.println("Next Arrival Time For " + ((indices[1] == 0)? "express job is " + times[1][0] :"general job is " + times[1][1]));
 
@@ -251,23 +253,13 @@ public class QueueSimulation {
             }
 
 
-        // System.out.println("Average General Job Size: " + sumJobSizeGeneral/numGeneralJobs);
+
         System.out.println("Average Response Time for General Jobs: " + (sumRTGeneralJobs+ 0.0)/numGeneralJobs);
         System.out.println("Average Response Time For Express Jobs: " + (sumRTExpressJobs+ 0.0)/(n - numGeneralJobs - k));
         System.out.println("Number of Jobs Moved from General Servers to Express Servers: " + numJobsMoved);
         System.out.println("Percentage of Express Jobs done within boundary: " + (100 * (1 - (0.0 +  numExpressJobsNotInBoundary)/(n - numGeneralJobs - k))) );
 
 
-//        double expectedN = sumN / (double)(n-k);     // Dividing by total number of jobs that arrived within the boundary
-//        double expectedT = sumT /(double)numJobsDep; // Dividing by total number of jobs that arrived within the boundary
-//
-//        System.out.println("For p = " + p);
-//        System.out.println("E[T] = " + expectedT);
-//        double formulaeT = (1-p)/(q-p);
-//        double formulaeN = p*(1-q)/(q-p);
-//        System.out.println("Expected T from formulae is " + formulaeT);
-//        System.out.println("E[N] = " + expectedN);
-//        System.out.println("Expected N from formulae is " + formulaeN);
 
     }
 
@@ -306,19 +298,22 @@ public class QueueSimulation {
     }
     public static void main(String[] args) throws IOException {
         Scanner scan = new Scanner(System.in);
-        double p;
+        double p1;
 
 
         do {
 
-            System.out.print("Please Enter Value of p in between 0 and 1(or not in range to terminate program): ");
-            p = scan.nextDouble();
-            if(p <= 1 && p > 0)
+            System.out.print("Please Enter Value of p1 in between 0 and 1(or not in range to terminate program): ");
+            p1 = scan.nextDouble();
+            if(p1 <= 1 && p1 > 0)
             {
-                simulateQueue(1000000, p,0.1, 2000);
+                simulateQueue(1000, p1,0.05,0.1, 100);
             }
 
-        } while (p <= 1 && p > 0);
+        } while (p1 <= 1 && p1 > 0);
+
+
+        int boundary = (int)(Math.log(0.01)/Math.log(1 - p1));
 
 
     }
