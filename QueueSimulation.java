@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class QueueSimulation {
 
 
-    static void simulateQueue(int n, double p1 , double p2,double q1, int k) throws IOException
+    static void simulateQueue(int n, double p1 ,double q1, int k) throws IOException
     /* Where n is the total Number of Jobs that should arrive in the simulation.
      p1 is the probability for inter-arrival time Geometric Distribution for general jobs
      p2 is the probability for inter-arrival time for Geometric distribution for e
@@ -30,13 +30,13 @@ public class QueueSimulation {
 
         //1/p1 is the expected value for the interrarrival time of general jobs.
         //We expect it to take a little longer for express jobs to come in
-
+        double p2 = p1/3.0;
         int expressJobInterArrival = GeometricGenerator.generateVar(p2);
 
-        //99th percentile for interrArrival times;
-        int worstExpressJobInterArrival = (int)Math.ceil(Math.log(0.01)/Math.log(1 - p2));
+        //5th percentile for interrArrival times;
+        int worstExpressJobInterArrival = (int)Math.ceil(Math.log(1 - 0.05)/Math.log(1 - p2));
 
-        int boundarySizeExpress = (expressJobSize < worstExpressJobInterArrival)?3*worstExpressJobInterArrival:expressJobSize * 3;
+        int boundarySizeExpress = expressJobSize * 3;
         //Index 0: Express server
         //Index 1: General server
         //Index 2: General server
@@ -168,7 +168,7 @@ public class QueueSimulation {
 
                         //if all current jobs, general job that is about to be moved,  and next express job will be finished within
                         //boundary time, move general job to express server
-                        if ((servers[0].emptyTime(currentTime) + tempJobSize + expressJobSize) - (worstExpressJobInterArrival)< boundarySizeExpress) //Calculate if next Express Job is done within boundary time. DepartureTime - ArrivalTime < boundarySizeExpress
+                        if ((servers[0].emptyTime(currentTime) + tempJobSize + expressJobSize) - (currentTime + worstExpressJobInterArrival)< boundarySizeExpress) //Calculate if next Express Job is done within boundary time. DepartureTime - ArrivalTime < boundarySizeExpress
                         {
                             server = servers[0];
                             numJobsMoved++;
@@ -177,7 +177,7 @@ public class QueueSimulation {
                         //if they won't finish within time,
                         else
                         {
-                            boolean tempBool = !expressLaneChecked;
+                            /*boolean tempBool = !expressLaneChecked;
                             expressLaneChecked = true;
                             //move job wrongly with probability 5%
                             if (tempBool && Math.random() < 0.05)
@@ -186,7 +186,7 @@ public class QueueSimulation {
                                 numJobsMoved++;
                             }
                             else
-                            {
+                            {*/
                                 if (servers[1].emptyTime(currentTime) < servers[2].emptyTime(currentTime))
                                 {
                                     server = servers[1];
@@ -195,7 +195,7 @@ public class QueueSimulation {
                                 {
                                     server = servers[2];
                                 }
-                            }
+                            //}
                         }
                     }
                 }
@@ -203,54 +203,54 @@ public class QueueSimulation {
                 Job tempJob = new Job(currentTime, tempJobSize, server.emptyTime(currentTime)  + tempJobSize, indices[1] == 0); // Generate job
 
                 if(numJobsArr > k)  // The first k boundary exceptions have already arrived
+                {
+                    //Since not every job actually finishes (program ends when all the jobs we want have arrived), we
+                    //should calculate a job's response time once it arrives so all jobs above boundary's response time
+                    //can be calculated
+                    long responseTime = tempJob.depTime - tempJob.arrTime;
+                    //if express job and response time exceeds boundary
+                    if(indices[1] == 0 && responseTime > boundarySizeExpress)
                     {
-                        //Since not every job actually finishes (program ends when all the jobs we want have arrived), we
-                        //should calculate a job's response time once it arrives so all jobs above boundary's response time
-                        //can be calculated
-                        long responseTime = tempJob.depTime - tempJob.arrTime;
-                        //if express job and response time exceeds boundary
-                        if(indices[1] == 0 && responseTime > boundarySizeExpress)
-                        {
-                            numExpressJobsNotInBoundary++;
-                        }
-                        System.out.println(((indices[1] == 0)? "Express Job":"General Job")+" response time: " + responseTime);
-                        if(indices[1] == 0){
-                            sumRTExpressJobs += responseTime;
-                            bwExpress.write(responseTime + "\n");
-                        }
-                        else{
-                            //get the number of general jobs that arrive in summer over entire iteration
-                            numGeneralJobs++;
-                            sumRTGeneralJobs += responseTime;
-                            bwGeneral.write(responseTime + "\n");
-                        }
-
-
+                        numExpressJobsNotInBoundary++;
                     }
+                    System.out.println(((indices[1] == 0)? "Express Job":"General Job")+" response time: " + responseTime);
+                    if(indices[1] == 0){
+                        sumRTExpressJobs += responseTime;
+                        bwExpress.write(responseTime + "\n");
+                    }
+                    else{
+                        //get the number of general jobs that arrive in summer over entire iteration
+                        numGeneralJobs++;
+                        sumRTGeneralJobs += responseTime;
+                        bwGeneral.write(responseTime + "\n");
+                    }
+
+
+                }
 
                 numJobsArr++;
 
                 if(server.jobInService == null) // No jobs in server
-                    {
-                        System.out.println("Job moved straight into service");
-                        server.jobInService = tempJob;
-                        server.nextDepartureTime = server.jobInService.depTime;
-                        System.out.println("Next Departure Time For " + (indices[1] == 0? "express job":"general job") +" is " + server.nextDepartureTime);
-                    }
+                {
+                    System.out.println("Job moved straight into service");
+                    server.jobInService = tempJob;
+                    server.nextDepartureTime = server.jobInService.depTime;
+                    System.out.println("Next Departure Time For " + (indices[1] == 0? "express job":"general job") +" is " + server.nextDepartureTime);
+                }
 
                 else // There is a job in service on the server
-                    {
-                        System.out.println("Job added to queue");
-                        server.queue.add(tempJob);
-                    }
+                {
+                    System.out.println("Job added to queue");
+                    server.queue.add(tempJob);
+                }
 
                 if(indices[1] == 0)times[1][0] += GeometricGenerator.generateVar(p2);
                 else times[1][1] += GeometricGenerator.generateVar(p1);
 
                 System.out.println("Next Arrival Time For " + ((indices[1] == 0)? "express job is " + times[1][0] :"general job is " + times[1][1]));
 
-                }
             }
+        }
 
 
 
@@ -307,7 +307,7 @@ public class QueueSimulation {
             p1 = scan.nextDouble();
             if(p1 <= 1 && p1 > 0)
             {
-                simulateQueue(1000, p1,0.05,0.1, 100);
+                simulateQueue(100000, p1,0.1, 100);
             }
 
         } while (p1 <= 1 && p1 > 0);
