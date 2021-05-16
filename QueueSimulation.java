@@ -14,6 +14,8 @@ public class QueueSimulation {
      xpress jobs
      q1 is the probability for Job Size Geometric
       Distribution for general jobs
+      q2 is the probability for Job Size Geometric
+      Distribution for express jobs
      k is the number of first arrivals that we should not check in our simulation.
      */
     {
@@ -29,7 +31,7 @@ public class QueueSimulation {
         double q2  = 2*q1;
         int expressJobSize = GeometricGenerator.generateVar(q2);
 
-        int worstExpressJobSize = (int)Math.ceil(Math.log(0.01)/Math.log(1 - q2));
+        int worstExpressJobSize = (int)Math.ceil(Math.log(0.05)/Math.log(1 - q2));
 
         //1/p1 is the expected value for the interrarrival time of general jobs.
         //We expect it to take a little longer for express jobs to come in
@@ -39,7 +41,7 @@ public class QueueSimulation {
         //5th percentile for interrArrival times;
         int worstExpressJobInterArrival = (int)Math.ceil(Math.log(1 - 0.05)/Math.log(1 - p2));
 
-        int boundarySizeExpress = (int)(2/p2);
+        int boundarySizeExpress =  (2 * worstExpressJobSize);
         //Index 0: Express server
         //Index 1: General server
         //Index 2: General server
@@ -157,7 +159,6 @@ public class QueueSimulation {
                 else
                 {
                     tempJobSize = GeometricGenerator.generateVar(q1);
-                    server = servers[indices[1]];
                     long[] emptyTimeArray = {servers[0].emptyTime(currentTime), servers[1].emptyTime(currentTime), servers[2].emptyTime(currentTime)};
                     //get server with least emptyTime
                     int serverIndex = minValue1DArray(emptyTimeArray);
@@ -176,7 +177,8 @@ public class QueueSimulation {
                         long waitTime = 0;
                         if(currentTime + worstExpressJobInterArrival < timeToWork) waitTime = timeToWork -(currentTime + worstExpressJobInterArrival);
                         //if(waitTime + worstExpressJobSize < boundary){........}
-                        if ((servers[0].emptyTime(currentTime) + tempJobSize + worstExpressJobSize) - (currentTime)< boundarySizeExpress) //Calculate if next Express Job is done within boundary time. DepartureTime - ArrivalTime < boundarySizeExpress
+
+                        if (waitTime + worstExpressJobSize < boundarySizeExpress) //Calculate if next Express Job is done within boundary time. DepartureTime - ArrivalTime < boundarySizeExpress
                         {
                             server = servers[0];
                             numJobsMoved++;
@@ -298,18 +300,24 @@ public class QueueSimulation {
     public static void main(String[] args) throws IOException {
         Scanner scan = new Scanner(System.in);
         double p1;
+        double q1 = 0.01;
 
+        if(q1 >= 0.5){
+            System.err.println("Please choose q1 value less than 0.5");
+            System.exit(1);
+        }
 
         do {
 
-            System.out.print("Please Enter Value of p1 in between 0 and 1(or not in range to terminate program): ");
+            System.out.print("Please Enter Value of p1 in between 0 and "+ 2*q1 + " (or not in range to terminate program): ");
             p1 = scan.nextDouble();
+
             if(p1 <= 1 && p1 > 0)
             {
-                simulateQueue(100000, p1,0.1, 100);
+                simulateQueue(100000, p1,q1, 100);
             }
 
-        } while (p1 <= 1 && p1 > 0);
+        } while (p1 <= 2*q1 && p1 > 0);
 
 
         int boundary = (int)(Math.log(0.01)/Math.log(1 - p1));
