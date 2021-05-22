@@ -339,6 +339,8 @@ public class QueueSimulation {
 
     }
 
+
+
     static int[] minValue2DArray(long[][] array)
     {
         int[] returnValue = new int[2];
