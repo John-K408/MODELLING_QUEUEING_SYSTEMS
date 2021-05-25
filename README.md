@@ -20,7 +20,13 @@ simulateQueue(int n, double p , double q, int k).
 #How to run
 Run main from the QueueSimulation.java file. 
 
-In the main function, As only p needs to be changed in question 4, I repetitively ask user a value for p for which
-the E[T] and E[N] needs to be calculated. Program terminates when the p entered is less than or equal to 0 or
-is greater than or equal to 1. Else, The method simulateQueue(int n, double p , double q, int k) is called for that
-specific p, n = 100000, q = 0.5, and k = 2000.
+In the main function, I repetitively ask user a value for p for which E[T] . Program terminates when the p entered is less than or equal to 0 or
+is greater than or equal to q. Else, The method simulateQueue(int n, double p , double q, int k, int system, int phase) is called for that
+specific p, n = 100000, q = 0.3, and k = 2000, system = 2, phase = 1.
+
+You can change the arguments provided to the simulateQueue function in our code to get results for different systems, phases, and q values.
+
+##NOTE
+The Systems in the code start from 0. So, System 1 from our research paper would be System 0 in the code.
+
+The Phases in the code start from 0. So, Phase 1 from our research paper would be Phase 0 in the code.
