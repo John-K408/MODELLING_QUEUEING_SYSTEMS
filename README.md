@@ -24,7 +24,7 @@ In the main function, I repetitively ask user a value for p for which E[T] . Pro
 is greater than or equal to q. Else, The method simulateQueue(int n, double p , double q, int k, int system, int phase) is called for that
 specific p, n = 100000, q = 0.3, and k = 2000, system = 2, phase = 1.
 
-You can change the arguments provided to the simulateQueue function in our code to get results for different systems, phases, and q values.
+You can change the arguments provided to the simulateQueue function in the main function to get results for different systems, phases, and q values.
 
 ##NOTE
 The Systems in the code start from 0. So, System 1 from our research paper would be System 0 in the code.
